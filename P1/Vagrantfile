@@ -1,0 +1,48 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'securerandom'
+
+TOKEN_FILE = File.join(File.dirname(__FILE__), ".k3s_token")
+unless File.exist?(TOKEN_FILE)
+  File.write(TOKEN_FILE, SecureRandom.hex(32))
+end
+K3S_TOKEN = File.read(TOKEN_FILE).strip
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "bento/ubuntu-24.04"
+
+  config.trigger.after :destroy do |trigger|
+    trigger.ruby do |env, machine|
+      if File.exist?(TOKEN_FILE)
+        File.delete(TOKEN_FILE)
+        puts "#{TOKEN_FILE} removed"
+      end
+    end
+  end
+
+  config.vm.define "srv" do |srv|
+    srv.vm.hostname = "geargencS"
+    srv.vm.network "private_network", ip: "192.168.56.110"
+    srv.vm.provision "shell", inline: <<-SHELL
+      curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip=192.168.56.110 --flannel-iface=eth1" sh -s - --token #{K3S_TOKEN}
+    SHELL
+  end
+
+  config.vm.define "wrk" do |wrk|
+    wrk.vm.hostname = "geargencSW"
+    wrk.vm.network "private_network", ip: "192.168.56.111"
+    wrk.vm.provision "shell", inline: <<-SHELL
+      curl -sfL https://get.k3s.io | K3S_URL=https://192.168.56.110:6443 K3S_TOKEN=#{K3S_TOKEN} INSTALL_K3S_EXEC="agent --node-ip=192.168.56.111 --flannel-iface=eth1" sh -
+    SHELL
+  end
+
+  config.vm.provider "libvirt" do |libvirt|
+    libvirt.memory = 2048      # RAM en Mo
+    libvirt.cpus = 1           # Nombre de vCPUs
+    libvirt.nested = true      # Virtualisation imbriquée
+    libvirt.driver = "kvm"     # Driver (kvm par défaut)
+  end
+
+end
