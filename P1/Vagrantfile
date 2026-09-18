@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.define "srv" do |srv|
+  config.vm.define "geargencS" do |srv|
     srv.vm.hostname = "geargencS"
     srv.vm.network "private_network", ip: "192.168.56.110"
     srv.vm.provision "shell", inline: <<-SHELL
@@ -30,7 +30,7 @@ Vagrant.configure("2") do |config|
     SHELL
   end
 
-  config.vm.define "wrk" do |wrk|
+  config.vm.define "geargencSW" do |wrk|
     wrk.vm.hostname = "geargencSW"
     wrk.vm.network "private_network", ip: "192.168.56.111"
     wrk.vm.provision "shell", inline: <<-SHELL
