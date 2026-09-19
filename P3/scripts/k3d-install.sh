@@ -1,5 +1,5 @@
 set -eux
-K3D_VERSION=${K3D_VERSION:-v5.9.0}
+K3D_VERSION=${K3D_VERSION:-$(curl -sL https://api.github.com/repos/k3d-io/k3d/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')}
 cd /tmp
 base="https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}"
 curl -sSfLO "${base}/k3d-linux-amd64"
