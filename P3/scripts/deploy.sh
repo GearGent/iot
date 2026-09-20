@@ -14,7 +14,8 @@ helm install argocd argo/argo-cd \
   --namespace argocd \
   --create-namespace \
   --version 10.1.3 \
-  --set server.service.type=ClusterIP \
+  --set server.service.type=NodePort \
+  --set "server.service.nodePorts.http=30080" \
   --set configs.params."server\.insecure"=true
 
 ARGOCD_VERSION=$(helm show chart argo/argo-cd --version 10.1.3 | grep '^appVersion:' | awk '{print $2}')
@@ -27,7 +28,7 @@ kubectl wait --for=condition=available deployment \
   -l app.kubernetes.io/name=argocd-server \
   -n argocd \
   --timeout=300s
-kubectl apply -n argocd -f ${CONFS_DIR}/argocd-ingress.yaml
+
 SECRET="$(kubectl get secret argocd-initial-admin-secret \
   -n argocd \
   -o jsonpath="{.data.password}" | base64 -d)"

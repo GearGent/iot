@@ -8,6 +8,9 @@ ports:
   - port: 8080:80
     nodeFilters:
       - server:0:direct
+  - port: 30080:30080
+    nodeFilters:
+      - server:0:direct
 options:
   k3d:
     disableLoadbalancer: true
