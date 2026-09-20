@@ -42,4 +42,7 @@ until "${ARGOCD}" login localhost:30080 \
 	sleep 3
 done
 
+kubectl apply -f "${CONFS_DIR}/dev-repository.yaml"
+kubectl apply -f "${CONFS_DIR}/dev-app.yaml"
+
 echo "Secret password: ${SECRET}"
