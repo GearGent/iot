@@ -33,10 +33,13 @@ SECRET="$(kubectl get secret argocd-initial-admin-secret \
   -n argocd \
   -o jsonpath="{.data.password}" | base64 -d)"
 
-"${ARGOCD}" login localhost:30080 \
+until "${ARGOCD}" login localhost:30080 \
   --username admin \
   --password "${SECRET}" \
   --insecure \
-  --grpc-web
+  --grpc-web; do
+	echo "Argo CD is unavailable for now, trying again in 3s..."
+	sleep 3
+done
 
 echo "Secret password: ${SECRET}"
