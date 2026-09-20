@@ -32,4 +32,11 @@ kubectl wait --for=condition=available deployment \
 SECRET="$(kubectl get secret argocd-initial-admin-secret \
   -n argocd \
   -o jsonpath="{.data.password}" | base64 -d)"
+
+"${ARGOCD}" login localhost:30080 \
+  --username admin \
+  --password "${SECRET}" \
+  --insecure \
+  --grpc-web
+
 echo "Secret password: ${SECRET}"
