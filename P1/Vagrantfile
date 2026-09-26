@@ -3,6 +3,8 @@
 
 require 'securerandom'
 
+ENV['VAGRANT_NO_PARALLEL'] = 'yes' # server ready before worker
+
 TOKEN_FILE = File.join(File.dirname(__FILE__), ".k3s_token")
 unless File.exist?(TOKEN_FILE)
   File.write(TOKEN_FILE, SecureRandom.hex(32))
@@ -12,6 +14,8 @@ K3S_TOKEN = File.read(TOKEN_FILE).strip
 Vagrant.configure("2") do |config|
 
   config.vm.box = "bento/ubuntu-24.04"
+  config.vm.boot_timeout = 900
+  config.vm.synced_folder ".", "/vagrant", disabled: true # disable NFS sync for performance
 
   config.trigger.after :destroy do |trigger|
     trigger.ruby do |env, machine|
@@ -25,8 +29,16 @@ Vagrant.configure("2") do |config|
   config.vm.define "geargencS" do |srv|
     srv.vm.hostname = "geargencS"
     srv.vm.network "private_network", ip: "192.168.56.110"
+
+    srv.vm.provider "libvirt" do |libvirt|
+      libvirt.cpus = 2
+      libvirt.memory = 2048
+    end
+
+
     srv.vm.provision "shell", inline: <<-SHELL
-      curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip=192.168.56.110 --flannel-iface=eth1" sh -s - --token #{K3S_TOKEN}
+      curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip=192.168.56.110 --flannel-iface=eth1 \
+      --write-kubeconfig-mode=644" sh -s - --token #{K3S_TOKEN}
     SHELL
   end
 
@@ -39,10 +51,12 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provider "libvirt" do |libvirt|
-    libvirt.memory = 2048      # RAM en Mo
-    libvirt.cpus = 1           # Nombre de vCPUs
-    libvirt.nested = true      # Virtualisation imbriquée
-    libvirt.driver = "kvm"     # Driver (kvm par défaut)
+    libvirt.driver = "qemu"
+    libvirt.cpu_mode = "custom"
+    libvirt.cpu_model = "qemu64"
+    libvirt.memory = 1024
+    libvirt.cpus = 1
+    # libvirt.nested = true
   end
 
 end
