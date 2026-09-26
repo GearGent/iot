@@ -7,6 +7,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "geargencS" do |conf|
     conf.vm.hostname = "geargencS"
+    conf.vm.network "private_network", ip: "192.168.56.110"
     conf.vm.network :forwarded_port, guest: 80, host: 8080
     conf.vm.provision "shell", inline: <<-SHELL
       curl -sfL https://get.k3s.io | sh -
@@ -20,7 +21,7 @@ Vagrant.configure("2") do |config|
     libvirt.memory = 4096      # RAM en Mo
     libvirt.cpus = 2           # Nombre de vCPUs
     libvirt.nested = true      # Virtualisation imbriquée
-    libvirt.driver = "kvm"     # Driver (kvm par défaut)
+    libvirt.driver = "qemu"     # Driver (kvm par défaut)
   end
 
 end
