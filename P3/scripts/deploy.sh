@@ -2,7 +2,16 @@ set -eux
 SCRIPTS_DIR="$(dirname $0)"
 CONFS_DIR="${SCRIPTS_DIR}/../confs"
 
-if ! which docker; then sudo apt update && apt install -y docker.io; fi
+if ! which docker; then \
+	sudo apt update && apt install -y docker.io; \
+	sudo systemctl enable --now docker; \
+fi
+
+if ! groups "${USER}" | grep -qw docker; then \
+	sudo usermod -aG docker "${USER}"; \
+	echo "You might need to run newgrp docker or relog"; \
+	exit 1; \
+fi
 
 if ! which k3d; then sh "${SCRIPTS_DIR}/k3d-install.sh"; fi
 if ! which helm; then sudo snap install helm --classic; fi
