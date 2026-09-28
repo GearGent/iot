@@ -2,6 +2,8 @@ set -eux
 SCRIPTS_DIR="$(dirname $0)"
 CONFS_DIR="${SCRIPTS_DIR}/../confs"
 
+if ! which docker; then sudo apt update && apt install -y docker.io; fi
+
 if ! which k3d; then sh "${SCRIPTS_DIR}/k3d-install.sh"; fi
 if ! which helm; then sudo snap install helm --classic; fi
 if ! which kubectl; then sh "${SCRIPTS_DIR}/kubectl-install.sh"; fi
